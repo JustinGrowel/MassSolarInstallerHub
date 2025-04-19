@@ -416,7 +416,7 @@ def scrape_company_reviews(driver, company_id, company_name, profile_url):
     }
     
     try:
-        # First, return to the main installer page
+        # First, return to the main installer page to get the aggregate rating and total count
         print(f"Navigating back to main installer page: {profile_url}")
         driver.get(profile_url)
         
@@ -426,7 +426,7 @@ def scrape_company_reviews(driver, company_id, company_name, profile_url):
         )
         time.sleep(2)  # Give the page a moment to fully render
         
-        # Look for aggregate rating on main page first
+        # Parse with BeautifulSoup
         page_source = driver.page_source
         soup = BeautifulSoup(page_source, 'html.parser')
         
@@ -449,187 +449,423 @@ def scrape_company_reviews(driver, company_id, company_name, profile_url):
         except Exception as e:
             print(f"Error extracting aggregate rating from main page: {e}")
         
-        # Directly use the URL method with parameters to access the reviews
-        direct_url = f"{profile_url}?limit=4&offset=0"
-        print(f"Using direct URL approach to access reviews: {direct_url}")
-        driver.get(direct_url)
+        # Try to get the total number of reviews
+        total_reviews = 0
+        try:
+            # Find all text elements that might contain review counts
+            for element in soup.find_all(['span', 'div', 'button']):
+                text = element.get_text(strip=True)
+                if 'review' in text.lower():
+                    # Look for patterns like "327 reviews", "327 review(s)", etc.
+                    count_match = re.search(r'(\d+)\s*review', text, re.IGNORECASE)
+                    if count_match:
+                        total_reviews = int(count_match.group(1))
+                        print(f"Found total of {total_reviews} reviews")
+                        break
+        except Exception as e:
+            print(f"Error extracting total review count: {e}")
         
-        # Wait for the page to load
-        WebDriverWait(driver, 15).until(
-            EC.presence_of_element_located((By.TAG_NAME, "body"))
-        )
-        time.sleep(2)  # Give the page time to load
+        # Initialize variables
+        valid_reviews = []
+        seen_reviews = set()  # Track unique reviews to avoid duplicates
         
-        # Now extract the reviews
-        page_source = driver.page_source
-        soup = BeautifulSoup(page_source, 'html.parser')
+        # IMPROVED APPROACH: Look specifically for modal trigger buttons for reviews
+        # This targets buttons like <button data-toggle="modal" data-target="#allReviews">See All Reviews (327)</button>
+        try:
+            print("Looking for review modal buttons...")
+            review_modal_button = None
+            
+            # First try to find buttons that explicitly open review modals
+            modal_buttons = driver.find_elements(By.CSS_SELECTOR, 
+                'button[data-toggle="modal"][data-target*="review"], '
+                'button[data-toggle="modal"][data-target*="Review"], '
+                'button[data-bs-toggle="modal"][data-bs-target*="review"]'
+            )
+            
+            # If found buttons, use the first one that mentions reviews
+            if modal_buttons:
+                for button in modal_buttons:
+                    button_text = button.text.lower()
+                    if 'review' in button_text:
+                        review_modal_button = button
+                        print(f"Found review modal button: {button.text}")
+                        break
+            
+            # If no specific modal button found, try more general review-related buttons
+            if not review_modal_button:
+                print("Looking for any review-related buttons...")
+                review_buttons = driver.find_elements(By.XPATH, 
+                    '//button[contains(text(), "review") or contains(text(), "Review") or contains(text(), "See All")]'
+                )
+                if review_buttons:
+                    review_modal_button = review_buttons[0]
+                    print(f"Found general review button: {review_modal_button.text}")
+            
+            # If found a button, click it to open the reviews modal
+            if review_modal_button:
+                print(f"Clicking review button to open modal: {review_modal_button.text}")
+                driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", review_modal_button)
+                time.sleep(1)
+                driver.execute_script("arguments[0].click();", review_modal_button)  # Use JS click for reliability
+                time.sleep(2.5)  # Give modal time to open
+                
+                # Wait for the modal to appear
+                try:
+                    WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.CSS_SELECTOR, ".modal.show, .modal.fade.in, [role='dialog'][aria-modal='true']"))
+                    )
+                    print("Modal dialog opened successfully")
+                    time.sleep(1)  # Give a moment for contents to fully render
+                except TimeoutException:
+                    print("Modal didn't appear to open, but continuing...")
+            else:
+                # Fallback to anchor links
+                print("No modal buttons found, looking for review links...")
+                review_links = driver.find_elements(By.CSS_SELECTOR, 
+                    'a[href*="review"], a[href*="rating"], a:contains("See All"), a:contains("All Reviews")'
+                )
+                if review_links:
+                    print(f"Found review link: {review_links[0].text}")
+                    driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", review_links[0])
+                    time.sleep(0.5)
+                    driver.execute_script("arguments[0].click();", review_links[0])
+                    time.sleep(2.5)
+                else:
+                    print("No review buttons or links found. Will try to extract reviews from current page.")
+        except Exception as e:
+            print(f"Error while trying to access reviews modal/page: {e}")
         
-        # Look for the review cards first - EnergySage specific selectors based on the HTML
-        review_containers = []
-        review_card_selector = '.review-card'
-        review_cards = soup.select(review_card_selector)
+        # Process reviews across all pages (pagination handling)
+        page_num = 1
+        max_pages = 100  # Safety limit
+        reviews_processed = 0
+        consecutive_empty_pages = 0  # Counter for pages with no new reviews
         
-        if review_cards:
-            review_containers = review_cards
-            print(f"Found {len(review_cards)} review cards with selector: {review_card_selector}")
-        else:
-            # Fallback to more generic selectors if specific cards aren't found
+        while page_num <= max_pages:
+            print(f"\n--- Processing reviews page {page_num} ---")
+            
+            # Get the current page source (after modal opened or page navigation)
+            page_source = driver.page_source
+            soup = BeautifulSoup(page_source, 'html.parser')
+            
+            # Find the modal container if present
+            modal_containers = soup.select('.modal.show, .modal.fade.in, .modal-dialog, [role="dialog"], [aria-modal="true"]')
+            if modal_containers:
+                print(f"Found {len(modal_containers)} modal containers")
+                # Use the first visible modal container
+                review_container = modal_containers[0]
+            else:
+                print("No modal container found, using full page")
+                review_container = soup
+            
+            # Find all review items within the container
+            review_items = []
+            
+            # Try specific review selectors first
             review_selectors = [
-                '.review', 
-                '[id*="review"]', 
-                '.testimonial', 
-                '.reviews-container .review-item',
-                '.rating-list .review-entry'
+                '.review-item', '.review-card', '.review', '.testimonial', 
+                '[class*="review"]', '[id*="review"]'
             ]
             
             for selector in review_selectors:
-                containers = soup.select(selector)
-                if containers:
-                    review_containers.extend(containers)
-                    print(f"Found {len(containers)} review containers with selector: {selector}")
-        
-        # Double check for reviews that might be displayed directly on the page in a list
-        if not review_containers:
-            # Looking at the HTML you shared, this is more specific to the EnergySage structure
-            possible_reviews = soup.find_all(['div', 'article'], class_=lambda c: c and ('review' in (c.lower() if isinstance(c, str) else ' '.join(c).lower())))
-            if possible_reviews:
-                review_containers.extend(possible_reviews)
-                print(f"Found {len(possible_reviews)} potential review containers")
-        
-        # Process review containers
-        valid_reviews = []
-        for idx, container in enumerate(review_containers):
-            try:
-                review_data = {}
-                
-                # Generate unique review ID
-                review_id = f"{company_id}_review_{int(time.time())}_{idx+1}"
-                review_data['id'] = review_id
-                
-                # Extract review text - first try to find the review body paragraph
-                review_text_elem = container.find('p', class_='review-body')
-                if not review_text_elem:
-                    # Fallbacks if specific class not found
-                    review_text_elem = container.find(['p', 'div'], class_=lambda c: c and 'text' in (c.lower() if isinstance(c, str) else ''))
-                    if not review_text_elem:
-                        review_text_elem = container.find('p')  # Just find any paragraph
-                
-                if review_text_elem:
-                    review_text = clean_text(review_text_elem.get_text())
-                    
-                    # Only proceed if we have meaningful text (not just a few characters)
-                    if len(review_text) > 10:
-                        review_data['text'] = review_text
-                        
-                        # Extract reviewer name - first check for the text-gray-700 div that contains reviewer info
-                        reviewer_div = container.find('div', class_='text-gray-700')
-                        reviewer_name = "Anonymous"
-                        
-                        if reviewer_div:
-                            # In EnergySage, the reviewer name is the first part before "on"
-                            reviewer_text = clean_text(reviewer_div.get_text())
-                            
-                            # Handle various formats for the reviewer information
-                            if 'on' in reviewer_text:
-                                # Extract the reviewer name - it's before "on" 
-                                name_part = reviewer_text.split('on')[0].strip()
-                                # Remove "Posted by" or similar text if present
-                                if 'Posted by' in name_part:
-                                    name_part = name_part.replace('Posted by', '').strip()
-                                if name_part and len(name_part) < 50:  # Reasonable name length
-                                    reviewer_name = name_part
-                            else:
-                                # If no "on" delimiter, try to extract from the beginning
-                                if reviewer_text and len(reviewer_text) < 50:
-                                    reviewer_name = reviewer_text
-                        else:
-                            # Fallback to traditional selectors if the specific class isn't found
-                            name_elem = container.find(['span', 'div'], class_=lambda c: c and any(x in (c.lower() if isinstance(c, str) else ' '.join(c).lower()) for x in ['author', 'name', 'poster', 'reviewer']))
-                            if name_elem:
-                                name_text = clean_text(name_elem.get_text())
-                                if name_text and len(name_text) < 50:  # Reasonable name length
-                                    reviewer_name = name_text
-                                    
-                                    # Clean common prefixes
-                                    if reviewer_name.lower().startswith(('by ', 'from ', '- ')):
-                                        reviewer_name = reviewer_name[reviewer_name.find(' ')+1:]
-                                        
-                        review_data['reviewer_name'] = reviewer_name
-                        
-                        # Extract date - if we have the reviewer_div, the date is after "on"
-                        review_date = "Unknown"
-                        
-                        if reviewer_div:
-                            reviewer_text = clean_text(reviewer_div.get_text())
-                            if 'on' in reviewer_text:
-                                date_part = reviewer_text.split('on')[1].strip()
-                                if date_part and len(date_part) < 30:  # Reasonable date length
-                                    review_date = date_part
-                        else:
-                            # Fallback to traditional date extraction
-                            date_elem = container.find(['span', 'div', 'time'], class_=lambda c: c and 'date' in (c.lower() if isinstance(c, str) else ' '.join(c).lower()))
-                            if date_elem:
-                                date_text = clean_text(date_elem.get_text())
-                                if date_text and len(date_text) < 30:  # Reasonable date length
-                                    review_date = date_text
-                                    
-                                    # Clean common prefixes
-                                    prefixes = ["posted on", "posted", "date:", "on", "published"]
-                                    for prefix in prefixes:
-                                        if review_date.lower().startswith(prefix):
-                                            review_date = review_date[len(prefix):].strip()
-                                            
-                        review_data['date'] = review_date
-                        
-                        # Try to determine star rating - first look for star ratings in the specific review card
-                        stars = 0
-                        
-                        # First check if there's a specific rating container
-                        star_container = container.find('div', class_='review-card__rating-overall-stars')
-                        if star_container:
-                            # Count the SVG stars (full ones)
-                            full_stars = len(star_container.select('svg.full'))
-                            if full_stars:
-                                stars = full_stars
-                        
-                        if stars == 0:
-                            # Fallback to more generic star indicators
-                            star_container = container.find(['div', 'span'], class_=lambda c: c and any(x in (c.lower() if isinstance(c, str) else ' '.join(c).lower()) for x in ['star', 'rating']))
-                            if star_container:
-                                # Count star SVGs, images, or rating text
-                                full_stars = len(star_container.select('[class*="full"], [class*="filled"], .fa-star, svg'))
-                                if full_stars:
-                                    stars = full_stars
-                                else:
-                                    # Try to extract numerical rating
-                                    rating_text = star_container.get_text(strip=True)
-                                    rating_match = re.search(r'(\d+(?:\.\d+)?)', rating_text)
-                                    if rating_match:
-                                        try:
-                                            stars = float(rating_match.group(1))
-                                        except:
-                                            pass
-                        
-                        review_data['rating'] = stars
-                        
-                        # Add valid review to list
-                        valid_reviews.append(review_data)
-                        print(f"Extracted review {len(valid_reviews)}: {reviewer_name}, {stars} stars, {review_date}")
+                items = review_container.select(selector)
+                if items and len(items) > 0:
+                    print(f"Found {len(items)} review items with selector: {selector}")
+                    review_items = items
+                    break
             
-            except Exception as e:
-                print(f"Error processing review container {idx+1}: {e}")
-        
-        # Update result with valid reviews
-        result["reviews"] = valid_reviews
-        print(f"Successfully extracted {len(valid_reviews)} valid reviews")
-        
-        # If we found valid reviews but no aggregate rating, calculate it from reviews
-        if result["aggregate_rating"] == 0 and valid_reviews:
-            rated_reviews = [r['rating'] for r in valid_reviews if r['rating'] > 0]
-            if rated_reviews:
-                result["aggregate_rating"] = sum(rated_reviews) / len(rated_reviews)
-                print(f"Calculated aggregate rating from reviews: {result['aggregate_rating']:.1f}")
+            # If no review items found with specific selectors, look for more generic containers
+            if not review_items:
+                # Look for paragraphs inside the modal that might contain reviews
+                paragraph_containers = review_container.select('.modal-body p, .review-container p')
+                if paragraph_containers and len(paragraph_containers) > 1:
+                    print(f"Found {len(paragraph_containers)} paragraphs that might contain reviews")
+                    review_items = paragraph_containers
+            
+            # Process each review item
+            new_reviews_on_page = 0
+            
+            if review_items:
+                print(f"Processing {len(review_items)} potential review items...")
+                for idx, item in enumerate(review_items):
+                    try:
+                        # Skip empty or very short items
+                        item_text = item.get_text(strip=True)
+                        if len(item_text) < 20:
+                            continue
+                        
+                        review_data = {}
+                        
+                        # Generate unique review ID
+                        review_id = f"{company_id}_review_{int(time.time())}_{reviews_processed+idx+1}"
+                        review_data['id'] = review_id
+                        
+                        # Extract review text - focusing on paragraph elements which usually contain the actual review
+                        review_text = ""
+                        paragraphs = item.select('p')
+                        for p in paragraphs:
+                            p_text = clean_text(p.get_text())
+                            # Skip attribution paragraphs (usually shorter)
+                            if len(p_text) > 25 and 'Posted by' not in p_text and not p_text.startswith('on '):
+                                review_text = p_text
+                                break
+                        
+                        # If no paragraph with good content, try the item's full text
+                        if not review_text:
+                            # Try to get content from a div with the review text
+                            content_divs = item.select('.review-text, .review-content, .review-body')
+                            if content_divs:
+                                review_text = clean_text(content_divs[0].get_text())
+                            else:
+                                # Last resort: use the full item text but try to filter out metadata
+                                item_text = clean_text(item.get_text())
+                                # Keep only first 80% of text to avoid attribution info at the end
+                                review_text = item_text[:int(len(item_text) * 0.8)]
+                        
+                        if review_text:
+                            review_data['text'] = review_text
+                            
+                            # Extract review title/heading if present
+                            heading_elements = item.select('h3, h4, h5, .review-title, .review-heading, strong')
+                            review_heading = None
+                            for heading_elem in heading_elements:
+                                heading_text = clean_text(heading_elem.get_text())
+                                if heading_text and len(heading_text) > 5 and len(heading_text) < 100:
+                                    review_heading = heading_text
+                                    break
+                            
+                            # Combine title and text if appropriate
+                            if review_heading and review_heading not in review_text:
+                                review_data['text'] = f"{review_heading}: {review_text}"
+                            
+                            # Extract review date
+                            review_date = "Unknown"
+                            
+                            # Look specifically for the EnergySage date format in text-gray-600 div
+                            date_container = item.select('div.text-gray-600 span.d-inline-block')
+                            if date_container:
+                                date_text = clean_text(date_container[0].get_text())
+                                if date_text:
+                                    review_date = date_text
+                                    print(f"Found date in EnergySage format: {review_date}")
+                            
+                            # If not found, try generic date elements
+                            if review_date == "Unknown":
+                                date_elements = item.select('.date, .review-date, .timestamp, [class*="date"]')
+                                if date_elements:
+                                    date_text = clean_text(date_elements[0].get_text())
+                                    if date_text and len(date_text) < 30:  # Reasonable date length
+                                        review_date = date_text
+                            
+                            # If still not found, try to extract from "on DATE" pattern
+                            if review_date == "Unknown":
+                                date_match = re.search(r'on\s+([A-Za-z]{3}\s+\d{1,2},?\s+\d{4}|[A-Za-z]{3}\s+\d{1,2})', item_text)
+                                if date_match:
+                                    review_date = date_match.group(1).strip()
+                            
+                            # If still not found, look for any date-like pattern in the text
+                            if review_date == "Unknown":
+                                date_pattern = re.search(r'([A-Za-z]{3,9}\s+\d{1,2},?\s+\d{4})', item_text)
+                                if date_pattern:
+                                    review_date = date_pattern.group(1).strip()
+                            
+                            review_data['date'] = review_date
+                            
+                            # Extract reviewer name
+                            reviewer_name = "Anonymous"
+                            
+                            # Look specifically for EnergySage reviewer format
+                            reviewer_match = re.search(r'Posted by\s+(\w+)\s+on', item_text)
+                            if reviewer_match:
+                                reviewer_name = reviewer_match.group(1).strip()
+                                print(f"Found reviewer in EnergySage format: {reviewer_name}")
+                            # If not found, try elements with reviewer name
+                            elif review_date == "Unknown":
+                                name_elements = item.select('.reviewer-name, .author, [class*="reviewer"], [class*="author"]')
+                                if name_elements:
+                                    name_text = clean_text(name_elements[0].get_text())
+                                    if name_text and len(name_text) < 50:  # Reasonable name length
+                                        reviewer_name = name_text
+                                        # Remove "Posted by" if present
+                                        if 'Posted by' in reviewer_name:
+                                            reviewer_name = reviewer_name.split('Posted by')[1].split('on')[0].strip()
+                            
+                            # If no specific element found, try to extract from "Posted by" text
+                            if reviewer_name == "Anonymous":
+                                posted_match = re.search(r'Posted by\s+([^on]{2,40}?)(?:\s+on\s|\n|$)', item_text)
+                                if posted_match:
+                                    reviewer_name = posted_match.group(1).strip()
+                            
+                            review_data['reviewer_name'] = reviewer_name
+                            
+                            # Extract rating (stars)
+                            stars = 0
+                            
+                            # Look for numeric rating in text
+                            rating_elements = item.select('.rating, .stars, [class*="rating"], [class*="star"]')
+                            for elem in rating_elements:
+                                rating_text = elem.get_text(strip=True)
+                                rating_match = re.search(r'(\d+\.?\d*)\s*/?\s*\d*', rating_text)
+                                if rating_match:
+                                    try:
+                                        stars = float(rating_match.group(1))
+                                        break
+                                    except:
+                                        pass
+                            
+                            # If no rating found in text, count star icons
+                            if stars == 0:
+                                filled_stars = len(item.select('.fa-star, .fas.fa-star, [class*="star-fill"], [class*="star-full"]'))
+                                if filled_stars > 0:
+                                    stars = filled_stars
+                            
+                            # Use aggregate rating as fallback
+                            if stars == 0:
+                                stars = result["aggregate_rating"] if result["aggregate_rating"] > 0 else 5.0
+                                
+                            review_data['rating'] = stars
+                            
+                            # Create a fingerprint to detect duplicate reviews
+                            review_fingerprint = f"{reviewer_name}|{review_date}|{review_text[:50]}"
+                            
+                            # Add to results if not a duplicate
+                            if review_fingerprint not in seen_reviews:
+                                seen_reviews.add(review_fingerprint)
+                                valid_reviews.append(review_data)
+                                new_reviews_on_page += 1
+                                reviews_processed += 1
+                                
+                                # Print review info (truncated to avoid excessive output)
+                                review_preview = review_text[:70] + "..." if len(review_text) > 70 else review_text
+                                print(f"Extracted review {len(valid_reviews)}: {reviewer_name}, {stars}★ - {review_preview}")
+                    
+                    except Exception as e:
+                        print(f"Error processing review item {idx+1}: {e}")
                 
+                print(f"Extracted {new_reviews_on_page} new reviews from page {page_num}. Total reviews so far: {len(valid_reviews)}")
+                
+                # If we didn't find any new reviews on this page, increment counter
+                if new_reviews_on_page == 0:
+                    consecutive_empty_pages += 1
+                    print(f"Warning: No new reviews found on page {page_num}. Consecutive empty pages: {consecutive_empty_pages}")
+                    
+                    # Stop if we've seen too many consecutive pages with no new reviews
+                    if consecutive_empty_pages >= 3:
+                        print("Too many consecutive pages with no new reviews. Stopping pagination.")
+                        break
+                else:
+                    # Reset counter if we found reviews
+                    consecutive_empty_pages = 0
+                
+                # Stop if we've reached our expected total
+                if total_reviews > 0 and len(valid_reviews) >= total_reviews:
+                    print(f"Reached expected total of {total_reviews} reviews. Stopping pagination.")
+                    break
+                
+                # IMPROVED PAGINATION HANDLING BASED ON EXACT HTML STRUCTURE
+                try:
+                    print("Looking for pagination controls in modal...")
+                    
+                    # Find the pagination container with the exact class
+                    pagination = driver.find_elements(By.CSS_SELECTOR, "ul.pagination")
+                    if pagination:
+                        print("Found pagination control container")
+                        
+                        # Look for the active page item first
+                        active_page = driver.find_element(By.CSS_SELECTOR, "li.page-item.active")
+                        if active_page:
+                            print(f"Found active page: {active_page.text}")
+                            
+                            # Find the next page link - it should be a direct sibling of the active page
+                            next_page_link = None
+                            
+                            # Method 1: Try to find the next page directly with CSS
+                            next_page_items = driver.find_elements(By.CSS_SELECTOR, 
+                                "li.page-item:not(.active):not(.disabled) a.page-link[data-api-url]"
+                            )
+                            
+                            # Filter to find the next page number
+                            try:
+                                # Strip any extra text like "(current)" from the active page element
+                                clean_page_text = active_page.text.strip().split('\n')[0].strip()
+                                current_page_num = int(clean_page_text)
+                                print(f"Current page number: {current_page_num}")
+                                
+                                for item in next_page_items:
+                                    # Check if this is a numbered page
+                                    page_text = item.text.strip()
+                                    try:
+                                        page_num = int(page_text)
+                                        if page_num == current_page_num + 1:
+                                            next_page_link = item
+                                            print(f"Found next page link to page {page_num}")
+                                            break
+                                    except ValueError:
+                                        # This might be the "Next" button with arrow
+                                        if "next" in item.get_attribute("class").lower() or ">" in page_text:
+                                            next_page_link = item
+                                            print("Found 'Next' button")
+                                            break
+                            except ValueError as e:
+                                print(f"Warning: Could not parse page number: {active_page.text} - {e}")
+                                # Fallback to using the Next button directly
+                                for item in next_page_items:
+                                    if "next" in item.get_attribute("class").lower() or ">" in item.text:
+                                        next_page_link = item
+                                        print("Falling back to 'Next' button")
+                                        break
+
+                            # If we found a next page link, click it
+                            if next_page_link:
+                                # Get the API URL from the data attribute for debugging
+                                api_url = next_page_link.get_attribute("data-api-url")
+                                print(f"Next page API URL: {api_url}")
+                                
+                                # Click the link
+                                print("Clicking next page link...")
+                                driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", next_page_link)
+                                time.sleep(0.5)
+                                driver.execute_script("arguments[0].click();", next_page_link)
+                                
+                                # Wait for content to update
+                                time.sleep(2.5)
+                                page_num += 1
+                            else:
+                                print("No next page link found - must be on the last page")
+                                break
+                        else:
+                            print("Could not find active page indicator")
+                            break
+                    else:
+                        print("No pagination controls found")
+                        break
+                        
+                except Exception as e:
+                    print(f"Error with pagination navigation: {e}")
+                    break
+            else:
+                print("No review items found on page. Stopping pagination.")
+                break
+        
+        # Update the result with valid reviews
+        result["reviews"] = valid_reviews
+        print(f"\nSuccessfully extracted {len(valid_reviews)} unique reviews")
+        
+        # If we found reviews but have no aggregate rating, calculate it
+        if result["aggregate_rating"] == 0 and valid_reviews:
+            ratings = [r['rating'] for r in valid_reviews if r['rating'] > 0]
+            if ratings:
+                result["aggregate_rating"] = sum(ratings) / len(ratings)
+                print(f"Calculated aggregate rating from reviews: {result['aggregate_rating']:.1f}")
+        
+        # Report success/failure compared to expected total
+        if total_reviews > 0:
+            if len(valid_reviews) >= total_reviews:
+                print(f"SUCCESS! Captured all {total_reviews} expected reviews.")
+            else:
+                print(f"WARNING: Only captured {len(valid_reviews)} out of {total_reviews} expected reviews.")
+                print(f"Coverage: {(len(valid_reviews)/total_reviews)*100:.1f}% of expected reviews")
+            
     except Exception as e:
         print(f"Error in review extraction process: {e}")
     
@@ -694,6 +930,54 @@ def scrape_installer_details(profile_url):
         
         # Get company name from the page title
         company_name = soup.title.string.split('|')[0].strip() if soup.title else "Unknown Company"
+        
+        # PART 0: Extract company logo
+        # Look for logo image in various locations on the page
+        print("Looking for company logo...")
+        logo_selectors = [
+            # EnergySage specific selectors based on observed HTML
+            'img[alt$="logo"]',  # Images with alt text ending with "logo"
+            'img[alt*="' + company_name + '"]',  # Images with company name in alt
+            'img[src*="cloudinary.com/energysage/image/fetch"]',  # Cloudinary hosted images like the example
+            'img[src*="es-media-prod"]',  # EnergySage media URLs
+            # Generic selectors
+            'img[alt*="logo" i]',  # Images with "logo" in alt text (case insensitive)
+            'img[src*="logo" i]',  # Images with "logo" in src URL
+            'img[alt*="' + company_name + '" i]',  # Images with company name in alt text
+            '.supplier-logo img', '.company-logo img',  # Common class names for logo containers
+            '.logo img', '#logo img',  # More common logo container selectors
+            '.header img', '.navbar-brand img'  # Header areas that might contain logos
+        ]
+        
+        for selector in logo_selectors:
+            logo_img = soup.select_one(selector)
+            if logo_img and logo_img.get('src'):
+                # Found a logo
+                result["logo_url"] = logo_img.get('src', '')
+                result["logo_alt"] = logo_img.get('alt', company_name + ' logo')
+                print(f"Found company logo: {result['logo_url']}")
+                break
+        
+        # If still not found, try more direct approach for EnergySage structure
+        if not result["logo_url"]:
+            # Try direct attribute search for width/height 200 images which are likely logos
+            logo_img = soup.find('img', attrs={'width': '200', 'height': '200'})
+            if logo_img and logo_img.get('src'):
+                result["logo_url"] = logo_img.get('src', '')
+                result["logo_alt"] = logo_img.get('alt', company_name + ' logo')
+                print(f"Found company logo with exact dimensions: {result['logo_url']}")
+        
+        if not result["logo_url"]:
+            print("No logo found with standard selectors, trying more generic approach...")
+            # If no logo found, try to find a prominent image at the top of the page
+            header_sections = soup.select('header, .header, .navbar, .company-header, .supplier-header')
+            for section in header_sections:
+                logo_img = section.find('img')
+                if logo_img and logo_img.get('src'):
+                    result["logo_url"] = logo_img.get('src', '')
+                    result["logo_alt"] = logo_img.get('alt', company_name + ' logo')
+                    print(f"Found potential logo in header: {result['logo_url']}")
+                    break
         
         # PART 1: Extract states served
         # Try multiple potential selectors for states served

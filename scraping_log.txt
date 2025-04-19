@@ -1,0 +1,227 @@
+Processing all Massachusetts installers from massachusetts_solar_installers.csv...
+
+================================================================================
+Processing installer 1:
+ID: 1
+Name: All Energy Solar
+Profile URL: https://www.energysage.com/supplier/20385/all-energy-solar/
+Setting up WebDriver for individual scraping test...
+Navigating to: https://www.energysage.com/supplier/20385/all-energy-solar/
+Page loaded successfully. Looking for installer details...
+Looking for company logo...
+Found company logo: https://res.cloudinary.com/energysage/image/fetch/s--ZKUhOTN8--/b_auto,c_pad,f_auto,h_200,q_auto,w_200/https://es-media-prod.s3.amazonaws.com/media/supplier/logo/source/Primary_Full_Color_0aad2cc1c1e6f26ac30773f178cafaf3.png
+Found states using class='states-served'
+Found 7 states served: IA, IL, MA, MN, NH, NY, WI
+Found headquarters using class='headquarters'
+Found headquarters: 1264 Energy Lane Saint Paul, MN 55108 United States
+Found other locations section using h3='Other Locations'
+Found 3 other locations:
+  1. 1264 Energy Lane Saint Paul, MN 55108
+  2. 66-D Main Line Drive Westfield, MA 01085
+  3. 5 Marsh Court Madison, WI 53718
+
+Attempting to access photo gallery...
+Found gallery button: https://www.energysage.com/supplier/20385/all-energy-solar/gallery/
+Navigating to gallery page: https://www.energysage.com/supplier/20385/all-energy-solar/gallery/
+Gallery page loaded successfully
+Found 17 potential media items in the gallery
+Downloading image 1 (ID: all-energy-solar_1745026526_1): https://es-media-prod.s3.amazonaws.com/media/u/f0a/569/0e8/2422eb89165295f213f8f22b869f876e/Waunakee_Wisconsin_solar_installation_-_All_Energy_Solar_0VpWVWg.jpg
+Successfully saved image to images/all-energy-solar_All_Energy_Solar_-_Profile_&_Reviews_-_2025/images/all-energy-solar_1745026526_1_Waunakee_Wisconsin_solar_installation_-_All_Energy_Solar_0VpWVWg.jpg
+Downloading image 2 (ID: all-energy-solar_1745026527_2): https://es-media-prod.s3.amazonaws.com/media/u/f0a/569/0e8/2422eb89165295f213f8f22b869f876e/Northampton_Massachusetts_residential_solar_installation_-_All_Energy_Solar_Q3JQHBz.jpg
+Successfully saved image to images/all-energy-solar_All_Energy_Solar_-_Profile_&_Reviews_-_2025/images/all-energy-solar_1745026527_2_Northampton_Massachusetts_residential_solar_installation_-_All_Energy_Solar_Q3JQHBz.jpg
+Detected YouTube video (ID: lavQnBe4qJY) from thumbnail: https://img.youtube.com/vi/lavQnBe4qJY/hqdefault.jpg
+Downloading video thumbnail 3 (ID: all-energy-solar_1745026527_3): https://img.youtube.com/vi/lavQnBe4qJY/hqdefault.jpg
+Successfully saved video thumbnail to images/all-energy-solar_All_Energy_Solar_-_Profile_&_Reviews_-_2025/videos/all-energy-solar_1745026527_3_youtube_lavQnBe4qJY.jpg
+Downloading image 4 (ID: all-energy-solar_1745026527_4): https://es-media-prod.s3.amazonaws.com/media/u/f0a/569/0e8/2422eb89165295f213f8f22b869f876e/Belchertown_Massachusetts_solar_barn_-_All_Energy_Solar_1_N1JWCS0.jpg
+Successfully saved image to images/all-energy-solar_All_Energy_Solar_-_Profile_&_Reviews_-_2025/images/all-energy-solar_1745026527_4_Belchertown_Massachusetts_solar_barn_-_All_Energy_Solar_1_N1JWCS0.jpg
+Downloading image 5 (ID: all-energy-solar_1745026527_5): https://es-media-prod.s3.amazonaws.com/media/u/f0a/569/0e8/2422eb89165295f213f8f22b869f876e/All_Energy_Solar_-_MPR_Member_Essentials_Ad_-_April_2021_D4nkTH1.jpg
+Successfully saved image to images/all-energy-solar_All_Energy_Solar_-_Profile_&_Reviews_-_2025/images/all-energy-solar_1745026527_5_All_Energy_Solar_-_MPR_Member_Essentials_Ad_-_April_2021_D4nkTH1.jpg
+Downloading image 6 (ID: all-energy-solar_1745026527_6): https://es-media-prod.s3.amazonaws.com/media/u/f0a/569/0e8/2422eb89165295f213f8f22b869f876e/Blue_House_Blue_Sky_with_Solar_Panels_-_All_Energy_Solar_x2usAv6.jpg
+Successfully saved image to images/all-energy-solar_All_Energy_Solar_-_Profile_&_Reviews_-_2025/images/all-energy-solar_1745026527_6_Blue_House_Blue_Sky_with_Solar_Panels_-_All_Energy_Solar_x2usAv6.jpg
+Downloading image 7 (ID: all-energy-solar_1745026528_7): https://es-media-prod.s3.amazonaws.com/media/u/f0a/569/0e8/2422eb89165295f213f8f22b869f876e/Middleton-Wisconsin-solar-installation-All-Energy-Solar-1-1080x810_DaRo1QF.webp
+Successfully saved image to images/all-energy-solar_All_Energy_Solar_-_Profile_&_Reviews_-_2025/images/all-energy-solar_1745026528_7_Middleton-Wisconsin-solar-installation-All-Energy-Solar-1-1080x810_DaRo1QF.jpg
+Downloading image 8 (ID: all-energy-solar_1745026528_8): https://es-media-prod.s3.amazonaws.com/media/u/f0a/569/0e8/2422eb89165295f213f8f22b869f876e/20230710_153643_emUMntn.jpg
+Successfully saved image to images/all-energy-solar_All_Energy_Solar_-_Profile_&_Reviews_-_2025/images/all-energy-solar_1745026528_8_20230710_153643_emUMntn.jpg
+Downloading image 9 (ID: all-energy-solar_1745026528_9): https://es-media-prod.s3.amazonaws.com/media/u/f0a/569/0e8/2422eb89165295f213f8f22b869f876e/Fines_20201009_0742_aGp6X2C.jpg
+Successfully saved image to images/all-energy-solar_All_Energy_Solar_-_Profile_&_Reviews_-_2025/images/all-energy-solar_1745026528_9_Fines_20201009_0742_aGp6X2C.jpg
+Downloading image 10 (ID: all-energy-solar_1745026528_10): https://es-media-prod.s3.amazonaws.com/media/u/f0a/569/0e8/2422eb89165295f213f8f22b869f876e/image_6_dNVDkQO.png
+Successfully saved image to images/all-energy-solar_All_Energy_Solar_-_Profile_&_Reviews_-_2025/images/all-energy-solar_1745026528_10_image_6_dNVDkQO.jpg
+Downloading image 11 (ID: all-energy-solar_1745026529_11): https://es-media-prod.s3.amazonaws.com/media/u/f0a/569/0e8/2422eb89165295f213f8f22b869f876e/Florence_Massachusetts_residential_solar_install_-_All_Energy_Solar_qJR977U.JPG
+Successfully saved image to images/all-energy-solar_All_Energy_Solar_-_Profile_&_Reviews_-_2025/images/all-energy-solar_1745026529_11_Florence_Massachusetts_residential_solar_install_-_All_Energy_Solar_qJR977U.jpg
+Detected YouTube video (ID: _JjIG97caZ0) from thumbnail: https://img.youtube.com/vi/_JjIG97caZ0/hqdefault.jpg
+Downloading video thumbnail 12 (ID: all-energy-solar_1745026529_12): https://img.youtube.com/vi/_JjIG97caZ0/hqdefault.jpg
+Successfully saved video thumbnail to images/all-energy-solar_All_Energy_Solar_-_Profile_&_Reviews_-_2025/videos/all-energy-solar_1745026529_12_youtube__JjIG97caZ0.jpg
+Detected YouTube video (ID: E6NiKbfwL6k) from thumbnail: https://img.youtube.com/vi/E6NiKbfwL6k/hqdefault.jpg
+Downloading video thumbnail 13 (ID: all-energy-solar_1745026529_13): https://img.youtube.com/vi/E6NiKbfwL6k/hqdefault.jpg
+Successfully saved video thumbnail to images/all-energy-solar_All_Energy_Solar_-_Profile_&_Reviews_-_2025/videos/all-energy-solar_1745026529_13_youtube_E6NiKbfwL6k.jpg
+Detected YouTube video (ID: xrTArNQOxgQ) from thumbnail: https://img.youtube.com/vi/xrTArNQOxgQ/hqdefault.jpg
+Downloading video thumbnail 14 (ID: all-energy-solar_1745026529_14): https://img.youtube.com/vi/xrTArNQOxgQ/hqdefault.jpg
+Successfully saved video thumbnail to images/all-energy-solar_All_Energy_Solar_-_Profile_&_Reviews_-_2025/videos/all-energy-solar_1745026529_14_youtube_xrTArNQOxgQ.jpg
+Detected YouTube video (ID: rNwy8KUZkMM) from thumbnail: https://img.youtube.com/vi/rNwy8KUZkMM/hqdefault.jpg
+Downloading video thumbnail 15 (ID: all-energy-solar_1745026529_15): https://img.youtube.com/vi/rNwy8KUZkMM/hqdefault.jpg
+Successfully saved video thumbnail to images/all-energy-solar_All_Energy_Solar_-_Profile_&_Reviews_-_2025/videos/all-energy-solar_1745026529_15_youtube_rNwy8KUZkMM.jpg
+Detected YouTube video (ID: 9z1VboWRigQ) from thumbnail: https://img.youtube.com/vi/9z1VboWRigQ/hqdefault.jpg
+Downloading video thumbnail 16 (ID: all-energy-solar_1745026530_16): https://img.youtube.com/vi/9z1VboWRigQ/hqdefault.jpg
+Successfully saved video thumbnail to images/all-energy-solar_All_Energy_Solar_-_Profile_&_Reviews_-_2025/videos/all-energy-solar_1745026530_16_youtube_9z1VboWRigQ.jpg
+Successfully processed 16 media items: 10 images and 6 videos
+Media metadata saved to images/all-energy-solar_All_Energy_Solar_-_Profile_&_Reviews_-_2025/media_metadata.json
+
+Attempting to access company reviews...
+Navigating back to main installer page: https://www.energysage.com/supplier/20385/all-energy-solar/
+Found aggregate rating on main page: 5.0 stars
+Found total of 327 reviews
+Looking for review modal buttons...
+Found review modal button: 327 Reviews
+Clicking review button to open modal: 327 Reviews
+Modal dialog opened successfully
+
+--- Processing reviews page 1 ---
+Found 2 modal containers
+Found 7 review items with selector: [class*="review"]
+Processing 7 potential review items...
+Found date in EnergySage format: Apr 16, 2025
+Extracted review 1: Anonymous, 5.0★ - They are friendly and everything went smoothly. They explained everyth...
+Found date in EnergySage format: Apr 12, 2025
+Found reviewer in EnergySage format: paula
+Extracted review 2: paula, 5.0★ - From the start, the folks at All Energy Solar have been fantastic. Str...
+Found date in EnergySage format: Apr 10, 2025
+Found reviewer in EnergySage format: dfauth12
+Extracted review 3: dfauth12, 5.0★ - From start to finish All Energy Solar has done a fabulous job for me a...
+Found date in EnergySage format: Apr 10, 2025
+Found reviewer in EnergySage format: lisaheinzmeunier
+Extracted review 4: lisaheinzmeunier, 5.0★ - Can we rate them a 6 out of 5 stars? All Energy Solar has been an unex...
+Extracted 4 new reviews from page 1. Total reviews so far: 4
+Looking for pagination controls in modal...
+Found pagination control container
+Found active page: 1
+(current)
+Current page number: 1
+Found next page link to page 2
+Next page API URL: https://www.energysage.com/supplier/profile/api/v1/reviews/20385/for-supplier/?limit=4&offset=4
+Clicking next page link...
+
+--- Processing reviews page 3 ---
+Found 2 modal containers
+Found 7 review items with selector: [class*="review"]
+Processing 7 potential review items...
+Found date in EnergySage format: Apr 09, 2025
+Found reviewer in EnergySage format: raetherdan
+Extracted review 5: raetherdan, 5.0★ - I chose to use All Energy Solar for our project and was impressed by e...
+Found date in EnergySage format: Apr 09, 2025
+Found reviewer in EnergySage format: GEOY901
+Extracted review 6: GEOY901, 5.0★ - Crew arrived when promised, and were very friendly and efficient. Elec...
+Found date in EnergySage format: Apr 08, 2025
+Found reviewer in EnergySage format: jjcdmn
+Extracted review 7: jjcdmn, 5.0★ - Timely response and quick turn around from phone call to install!
+Found date in EnergySage format: Apr 08, 2025
+Found reviewer in EnergySage format: jansenmt15
+Extracted review 8: jansenmt15, 5.0★ - All Energy Solar helped us understand exactly what we were installing,...
+Extracted 4 new reviews from page 3. Total reviews so far: 8
+Looking for pagination controls in modal...
+Found pagination control container
+Found active page: 2
+(current)
+Current page number: 2
+Found next page link to page 3
+Next page API URL: https://www.energysage.com/supplier/profile/api/v1/reviews/20385/for-supplier/?limit=4&offset=8
+Clicking next page link...
+
+--- Processing reviews page 4 ---
+Found 2 modal containers
+Found 7 review items with selector: [class*="review"]
+Processing 7 potential review items...
+Found date in EnergySage format: Apr 08, 2025
+Found reviewer in EnergySage format: tiemanb
+Extracted review 9: tiemanb, 5.0★ - Very happy with the installation of 11 REC 460 solar panels. One day i...
+Found date in EnergySage format: Feb 24, 2025 (Updated Apr 07, 2025)
+Found reviewer in EnergySage format: DISCOPHIL61
+Extracted review 10: DISCOPHIL61, 5.0★ - All Energy was great to work with right from the beginning. Theykept i...
+Found date in EnergySage format: Apr 06, 2025
+Extracted review 11: Anonymous, 5.0★ - All Solar Energy has been amazing! They have been available to answer ...
+Found date in EnergySage format: Mar 22, 2025
+Found reviewer in EnergySage format: cdensinger
+Extracted review 12: cdensinger, 5.0★ - Last year All Energy Solar installed a solar panel system on our new h...
+Extracted 4 new reviews from page 4. Total reviews so far: 12
+Looking for pagination controls in modal...
+Found pagination control container
+Found active page: 3
+(current)
+Current page number: 3
+Found next page link to page 4
+Next page API URL: https://www.energysage.com/supplier/profile/api/v1/reviews/20385/for-supplier/?limit=4&offset=12
+Clicking next page link...
+
+--- Processing reviews page 5 ---
+Found 2 modal containers
+Found 7 review items with selector: [class*="review"]
+Processing 7 potential review items...
+Found date in EnergySage format: Mar 21, 2025
+Found reviewer in EnergySage format: lozyniak229
+Extracted review 13: lozyniak229, 5.0★ - The crews were on time, courteous, and all the work was very professio...
+Found date in EnergySage format: Mar 20, 2025
+Found reviewer in EnergySage format: crupper_primmer3q
+Extracted review 14: crupper_primmer3q, 5.0★ - All Energy Solar has a great team of people from the back office to th...
+Found date in EnergySage format: Mar 17, 2025
+Extracted review 15: Anonymous, 5.0★ - I worked with four different installers and found All Energy Solar to ...
+Found date in EnergySage format: Mar 08, 2025
+Found reviewer in EnergySage format: curtisoien
+Extracted review 16: curtisoien, 5.0★ - After nine years of being a happy customer, we had All Energy Solar in...
+Extracted 4 new reviews from page 5. Total reviews so far: 16
+Looking for pagination controls in modal...
+Found pagination control container
+Found active page: 4
+(current)
+Current page number: 4
+Found next page link to page 5
+Next page API URL: https://www.energysage.com/supplier/profile/api/v1/reviews/20385/for-supplier/?limit=4&offset=16
+Clicking next page link...
+
+--- Processing reviews page 6 ---
+Found 2 modal containers
+Found 7 review items with selector: [class*="review"]
+Processing 7 potential review items...
+Found date in EnergySage format: Mar 08, 2025
+Found reviewer in EnergySage format: kaba4family
+Extracted review 17: kaba4family, 5.0★ - The installation crews were very professional, knowledgeable, experien...
+Found date in EnergySage format: Feb 25, 2025
+Found reviewer in EnergySage format: paul
+Extracted review 18: paul, 5.0★ - All Energy Solar installed my panels, EV charger, battery and a new su...
+Found date in EnergySage format: Feb 18, 2025
+Found reviewer in EnergySage format: fairfaxan
+Extracted review 19: fairfaxan, 1.0★ - Rate @ $3.61/watt. Too costly We don't want to move further so we cann...
+Found date in EnergySage format: Feb 14, 2025 (Updated Feb 14, 2025)
+Extracted review 20: Anonymous, 2.0★ - I strongly advise caution when considering All Solar Energy for solar....
+Extracted 4 new reviews from page 6. Total reviews so far: 20
+Looking for pagination controls in modal...
+Found pagination control container
+Found active page: 5
+(current)
+Current page number: 5
+Found next page link to page 6
+Next page API URL: https://www.energysage.com/supplier/profile/api/v1/reviews/20385/for-supplier/?limit=4&offset=20
+Clicking next page link...
+
+--- Processing reviews page 7 ---
+Found 2 modal containers
+Found 7 review items with selector: [class*="review"]
+Processing 7 potential review items...
+Found date in EnergySage format: Feb 01, 2025 (Updated Feb 01, 2025)
+Found reviewer in EnergySage format: jacobsonvincent
+Extracted review 21: jacobsonvincent, 5.0★ - The folks from All Energy Solar finished their installation today! It ...
+Found date in EnergySage format: Jan 22, 2025
+Found reviewer in EnergySage format: Amyecco
+Extracted review 22: Amyecco, 5.0★ - It's been a great experience! From the initial sales meeting at my hom...
+Found date in EnergySage format: Jan 21, 2025
+Found reviewer in EnergySage format: marcaraymond
+Extracted review 23: marcaraymond, 5.0★ - All Energy Solar (AES) has done an incredible job with our solar insta...
+Found date in EnergySage format: Jan 15, 2025
+Found reviewer in EnergySage format: webbreviewsmn
+Extracted review 24: webbreviewsmn, 5.0★ - All Energy Solar and all of the team members my wife and I interacted ...
+Extracted 4 new reviews from page 7. Total reviews so far: 24
+Looking for pagination controls in modal...
+Found pagination control container
+Found active page: 6
+(current)
+Current page number: 6
+Found next page link to page 7
+Next page API URL: https://www.energysage.com/supplier/profile/api/v1/reviews/20385/for-supplier/?limit=4&offset=24
